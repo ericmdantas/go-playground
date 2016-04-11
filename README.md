@@ -1,1 +1,1 @@
-Golang playground
+Play!
