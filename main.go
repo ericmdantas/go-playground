@@ -1,21 +1,15 @@
 package main
 
-import (
-	"fmt"
-	"time"
-)
+import "fmt"
+
+func s(cb func(s string)) string {
+	cb("yo")
+
+	return "yo"
+}
 
 func main() {
-	done := make(chan bool)
-
-	go func() {
-		done <- true
-	}()
-
-	select {
-	case <-done:
-		fmt.Println("yo!")
-	case <-time.After(time.Nanosecond):
-		fmt.Println("not yo!")
-	}
+	s(func(info string) {
+		fmt.Println(info)
+	})
 }
