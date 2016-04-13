@@ -4,25 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"time"
 )
 
 const url = "http://jsonplaceholder.typicode.com/posts/1"
 
-func main() {
-	transport := http.Transport{
-		Dial: func(network, addr string) (net.Conn, error) {
-			return net.DialTimeout(network, addr, time.Duration(1*time.Second))
-		},
-	}
-
-	client := http.Client{
-		Transport: &transport,
-	}
-
-	resp, err := client.Get(url)
+func getGet() map[string]interface{} {
+	resp, err := http.Get(url)
 
 	var m map[string]interface{}
 
@@ -38,5 +27,23 @@ func main() {
 		fmt.Println(err)
 	}
 
-	fmt.Println(m)
+	return m
+}
+
+func main() {
+	d := make(chan map[string]interface{})
+
+	go func() {
+		d <- getGet()
+	}()
+
+	select {
+	case m := <-d:
+		fmt.Println("get returned")
+		fmt.Println(m)
+	case <-time.After(1 * time.Second):
+		fmt.Println("timeout")
+	}
+
+	fmt.Println("yo!")
 }
