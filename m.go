@@ -1,49 +1,36 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"time"
 )
 
-const url = "http://jsonplaceholder.typicode.com/posts/1"
+type ball struct {
+	hits int
+}
 
-func getGet() map[string]interface{} {
-	resp, err := http.Get(url)
+func play(name string, start chan *ball) {
+	for {
+		b := <-start
 
-	var m map[string]interface{}
+		b.hits++
+		fmt.Println(name, b.hits)
 
-	b, err := ioutil.ReadAll(resp.Body)
+		time.Sleep(time.Millisecond * 100)
 
-	if err != nil {
-		fmt.Println(err)
+		start <- b
 	}
-
-	err = json.Unmarshal(b, &m)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	return m
 }
 
 func main() {
-	d := make(chan map[string]interface{})
+	s := make(chan *ball)
 
-	go func() {
-		d <- getGet()
-	}()
+	go play("a", s)
+	go play("b", s)
 
-	select {
-	case m := <-d:
-		fmt.Println("get returned")
-		fmt.Println(m)
-	case <-time.After(1 * time.Second):
-		fmt.Println("timeout")
-	}
+	s <- new(ball)
 
-	fmt.Println("yo!")
+	time.Sleep(1 * time.Second)
+
+	<-s
 }
