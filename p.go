@@ -4,27 +4,34 @@ import (
 	"bytes"
 	"compress/gzip"
 	"io/ioutil"
+	"net/http"
 	"os"
 )
 
 func main() {
-	bf, _ := ioutil.ReadFile("f.txt")
+	r, _ := http.Get("http://jsonplaceholder.typicode.com/photos")
+	bBody, _ := ioutil.ReadAll(r.Body)
+	r.Body.Close()
 
-	var w bytes.Buffer
+	ioutil.WriteFile("r.json", bBody, 0644)
 
-	gw := gzip.NewWriter(&w)
-	gzip.NewWriterLevel(gw, gzip.BestCompression)
-	gw.Write(bf)
-	defer gw.Close()
+	var bts bytes.Buffer
 
-	ioutil.WriteFile("f.gz", w.Bytes(), 0644)
-	f1, _ := os.Open("f.gz")
-	defer f1.Close()
+	gw := gzip.NewWriter(&bts)
+	gw.Write(bBody)
+	gw.Close()
 
-	gr, _ := gzip.NewReader(f1)
-	defer gr.Close()
+	ioutil.WriteFile("r.gz", bts.Bytes(), 0644)
 
-	b, _ := ioutil.ReadAll(f1)
+	jf, _ := os.Open("r.json")
+	gf, _ := os.Open("r.gz")
+	stat, _ := jf.Stat()
+	defer jf.Close()
 
-	ioutil.WriteFile("f2.txt", b, 0644)
+	rb := make([]byte, stat.Size())
+
+	rG, _ := gzip.NewReader(gf)
+	rG.Read(rb)
+
+	ioutil.WriteFile("r2.json", rb, 0644)
 }
