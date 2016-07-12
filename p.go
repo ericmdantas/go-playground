@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -24,25 +25,39 @@ type photo struct {
 
 func main() {
 	var photos []photo
+	var mutex sync.Mutex
 
 	start := time.Now()
+	chP := make(chan photo)
 
 	for i := 1; i <= amount; i++ {
-		var p photo
+		go func(j int) {
+			var p photo
 
-		u := url + strconv.Itoa(i)
+			u := url + strconv.Itoa(j)
 
-		fmt.Printf("-> %s\n", u)
+			fmt.Printf("-> %s\n", u)
 
-		r, _ := http.Get(u)
-		b, _ := ioutil.ReadAll(r.Body)
+			r, _ := http.Get(u)
+			b, _ := ioutil.ReadAll(r.Body)
 
-		json.Unmarshal(b, &p)
+			json.Unmarshal(b, &p)
 
-		photos = append(photos, p)
+			r.Body.Close()
 
-		r.Body.Close()
+			chP <- p
+		}(i)
+
+		select {
+		case p := <-chP:
+			mutex.Lock()
+			photos = append(photos, p)
+			mutex.Unlock()
+		}
 	}
+
+	bTs, _ := json.Marshal(photos)
+	ioutil.WriteFile("p.json", bTs, 0644)
 
 	fmt.Println(time.Since(start))
 }
