@@ -1,0 +1,30 @@
+<doctype html>
+<html>
+    <head>
+        <title>go-ws</title>
+    </head>    
+
+    <body>
+        <p id="c">0</p>
+
+        <script>
+            ;(function() {
+                "use strict";
+
+                var ws = new WebSocket("ws://localhost:3456/ws");
+
+                ws.onmessage = function(info) {
+                    var _info = JSON.parse(info.data);
+
+                    document.getElementById("c").innerText = `${_info.txt} (${Date.now()})`; 
+                }
+
+                ws.onopen = function() {
+                    if (ws.readyState === ws.OPEN) {
+                        ws.send(JSON.stringify({txt: "opa"}));
+                    }
+                }
+            }());
+        </script>
+    </body>
+</html>

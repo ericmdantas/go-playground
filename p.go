@@ -1,63 +1,27 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/http"
-	"strconv"
-	"sync"
-	"time"
+
+	ws "golang.org/x/net/websocket"
 )
 
-const (
-	amount = 5000
-	url    = "http://jsonplaceholder.typicode.com/photos/"
-)
-
-type photo struct {
-	AlbumID     int    `json:"albumId"`
-	ID          int    `json:"id"`
-	Title       string `json:"title"`
-	URL         string `json:"url"`
-	ThumbailURL string `json:"thumbnailUrl"`
+type msg struct {
+	Txt string `json:"txt"`
 }
 
 func main() {
-	var photos []photo
-	var mutex sync.Mutex
+	http.Handle("/", http.FileServer(http.Dir(".")))
 
-	start := time.Now()
-	chP := make(chan photo)
+	http.Handle("/ws", ws.Handler(func(client *ws.Conn) {
+		var m msg
 
-	for i := 1; i <= amount; i++ {
-		go func(j int) {
-			var p photo
-
-			u := url + strconv.Itoa(j)
-
-			fmt.Printf("-> %s\n", u)
-
-			r, _ := http.Get(u)
-			b, _ := ioutil.ReadAll(r.Body)
-
-			json.Unmarshal(b, &p)
-
-			r.Body.Close()
-
-			chP <- p
-		}(i)
-
-		select {
-		case p := <-chP:
-			mutex.Lock()
-			photos = append(photos, p)
-			mutex.Unlock()
+		if err := ws.JSON.Receive(client, &m); err != nil {
+			panic(err)
 		}
-	}
 
-	bTs, _ := json.Marshal(photos)
-	ioutil.WriteFile("p.json", bTs, 0644)
+		ws.JSON.Send(client, msg{Txt: m.Txt + "!"})
+	}))
 
-	fmt.Println(time.Since(start))
+	http.ListenAndServe(":3456", nil)
 }
