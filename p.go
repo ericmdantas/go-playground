@@ -2,52 +2,34 @@ package main
 
 import (
 	"net/http"
-	"strings"
+
+	"golang.org/x/net/websocket"
 )
 
-type httpCb func(w http.ResponseWriter, r *http.Request)
+func received(c *websocket.Conn) <-chan string {
+	strCh := make(chan string, 1)
 
-func newRouter() *router {
-	return &router{
-		Name: "rrr",
-		Fns:  make(map[string]httpCb),
-	}
-}
+	var m string
 
-type router struct {
-	Name string
-	Fns  map[string]httpCb
-}
+	websocket.Message.Receive(c, m)
 
-func (rou *router) on(url string, cb httpCb) {
-	locURL := strings.Trim(url, " ")
-	locURL = strings.ToLower(locURL)
+	strCh <- m
 
-	rou.Fns[locURL] = cb
-}
-
-func (rou *router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h := w.Header()
-	h.Add("abc", "123")
-	h.Add("Content-Type", "application/json")
-
-	for k, v := range rou.Fns {
-		if k == r.URL.Path {
-			v(w, r)
-		}
-	}
+	return strCh
 }
 
 func main() {
-	r := newRouter()
+	http.Handle("/", http.FileServer(http.Dir(".")))
+	http.Handle("/ws", websocket.Handler(func(c *websocket.Conn) {
+		c.Write([]byte("yo!"))
 
-	r.on("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("!"))
-	})
+		for {
+			select {
+			case msg := <-received(c):
+				c.Write([]byte(msg + "!"))
+			}
+		}
+	}))
 
-	r.on("/wtf", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("yo!"))
-	})
-
-	http.ListenAndServe(":1234", r)
+	http.ListenAndServe(":1234", nil)
 }

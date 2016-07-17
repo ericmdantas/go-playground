@@ -1,0 +1,24 @@
+<doctype html>
+<html>
+    <head>
+        <title>...</title>        
+    </head>
+
+    <body>
+        <h1 id="r">!</h1>
+
+        <script>
+            ;(function() {
+                var ws = new WebSocket("ws://localhost:1234/ws");
+
+                ws.onmessage = function(ev) {
+                    document.getElementById('r').innerText = ev.data; 
+
+                    setInterval(() => {
+                        ws.send("wtf");
+                    }, 1000);
+                }
+            }());
+        </script>
+    </body>
+</html>
