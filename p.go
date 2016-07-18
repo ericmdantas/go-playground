@@ -11,7 +11,7 @@ func received(c *websocket.Conn) <-chan string {
 
 	var m string
 
-	websocket.Message.Receive(c, m)
+	websocket.Message.Receive(c, &m)
 
 	strCh <- m
 

@@ -12,11 +12,11 @@
                 var ws = new WebSocket("ws://localhost:1234/ws");
 
                 ws.onmessage = function(ev) {
-                    document.getElementById('r').innerText = ev.data; 
-
-                    setInterval(() => {
-                        ws.send("wtf");
-                    }, 1000);
+                    document.getElementById('r').innerText = `${ev.data} - ${Date.now()}`; 
+                    ws.send("wtf1");
+                    ws.send("wtf2");
+                    ws.send("wtf3");
+                    ws.send("wtf?");
                 }
             }());
         </script>
