@@ -14,9 +14,6 @@
                 ws.onmessage = function(ev) {
                     document.getElementById('r').innerText = `${ev.data} - ${Date.now()}`; 
                     ws.send("wtf1");
-                    ws.send("wtf2");
-                    ws.send("wtf3");
-                    ws.send("wtf?");
                 }
             }());
         </script>
