@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"golang.org/x/net/websocket"
 )
+
+const port = ":1234"
 
 func main() {
 	http.Handle("/", http.FileServer(http.Dir(".")))
@@ -21,5 +24,7 @@ func main() {
 		}
 	}))
 
-	http.ListenAndServe(":1234", nil)
+	fmt.Println(port)
+
+	http.ListenAndServe(port, nil)
 }
