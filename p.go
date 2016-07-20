@@ -3,24 +3,25 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"golang.org/x/net/websocket"
 )
+
+type mouse struct {
+	OffsetX int `json:"offsetX"`
+	OffsetY int `json:"offsetY"`
+	Amount  int `json:"amount"`
+}
 
 const port = ":1234"
 
 func main() {
 	http.Handle("/", http.FileServer(http.Dir(".")))
 	http.Handle("/ws", websocket.Handler(func(c *websocket.Conn) {
-		c.Write([]byte("yo!"))
-
-		time.Sleep(1 * time.Second)
-
 		for {
-			var m string
-			websocket.Message.Receive(c, &m)
-			c.Write([]byte(m + "!"))
+			var m mouse
+			websocket.JSON.Receive(c, &m)
+			websocket.JSON.Send(c, m)
 		}
 	}))
 
