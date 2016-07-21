@@ -5,24 +5,33 @@
     </head>
 
     <body>
-        <p>
-            <span>offsetX:</span>
-            <span id="x"></span>
-        </p>
-        <p>
-            <span>offsetY:</span>
-            <span id="y"></span>
-        </p>
-        <p>
-            <span>amount:</span>
-            <span id="a"></span>
-        </p>
+        <div style="position: fixed; 
+                    z-index: 999; 
+                    left: 0; 
+                    top: 0; 
+                    background-color: #fff;
+                    box-shadow: 1px 1px 1px gold;   
+                    padding: 10px;">
+            <p>
+                <span>x:</span>
+                <span id="x"></span>
+            </p>
+            <p>
+                <span>y:</span>
+                <span id="y"></span>
+            </p>
+            <p>
+                <span>amount:</span>
+                <span id="a"></span>
+            </p>
 
-        <p>
-            <span>hash:</span>
-            <span id="hash"></span>
-        </p>
+            <p>
+                <span>hash:</span>
+                <span id="hash"></span>
+            </p>
 
+        </div>        
+        
         <script>
             ;(function() {
                 var ws = new WebSocket("ws://localhost:1234/ws");
@@ -30,29 +39,36 @@
                 ws.onmessage = function(ev) {
                     var _data = JSON.parse(ev.data);
 
-                    document.getElementById('x').innerText = _data.offsetX;                   
-                    document.getElementById('y').innerText = _data.offsetY;                  
+                    document.getElementById('x').innerText = _data.x;                   
+                    document.getElementById('y').innerText = _data.y;                  
                     document.getElementById('a').innerText = _data.amount;                  
-                    document.getElementById('hash').innerText = Date.now();
+                    document.getElementById('hash').innerText = _data.hash;
 
-                    newNode(_data.offsetX, _data.offsetY);                  
+                    newNode(_data.x, _data.y);                  
                 };
 
                 ws.onopen = function() {
                     var _info = {
-                        offsetX: 0,
-                        offsetY: 0,
+                        x: 0,
+                        x: 0,
                         amount: 0                            
                     };
 
-                    document.body.addEventListener('mousemove', (ev) => {
-                        _info.offSetX = ev.offsetX;
-                        _info.offSetY = ev.offsetY;
+                    var _width = document.body.offsetWidth;
+                    var _height = document.body.offsetWidth;
+
+                    setInterval(() => {
+                        _info.x = ~~(Math.random() * _width);
+                        _info.y = ~~(Math.random() * _height);
                         _info.amount++;
                         
                         ws.send(JSON.stringify(_info));
-                    });
+                    }, 3);
                 };
+
+                function color() {
+                    return '#' + ("000000" + Math.random().toString(16).slice(2, 8).toUpperCase()).slice(-6);
+                }
 
                 function newNode(x, y) {
                     var el = document.createElement('span');
@@ -60,11 +76,12 @@
                     var clzz = document.createAttribute("class");
 
                     stl.value = `height: 5px; 
-                                  width: 5px; 
-                                  background-color: yellow; 
-                                  position: fixed; 
-                                  left: ${x}px;
-                                  top:${y}px;`;
+                                 width: 5px;
+                                 border-radius: 100%; 
+                                 background-color: ${color()}; 
+                                 position: fixed; 
+                                 left: ${x}px;
+                                 top:${y}px;`;
 
                     clzz.value = "new-node";
                     el.setAttributeNode(stl);
