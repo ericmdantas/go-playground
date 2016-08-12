@@ -1,31 +1,40 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
+	"time"
 
 	"golang.org/x/net/websocket"
 )
 
-type mouse struct {
-	OffsetX int `json:"offsetX"`
-	OffsetY int `json:"offsetY"`
-	Amount  int `json:"amount"`
+type pos struct {
+	X int `json:"x"`
+	Y int `json:"y"`
 }
 
-const port = ":1234"
-
 func main() {
+	c := 0
+	ticker := time.NewTicker(1 * time.Millisecond)
+
 	http.Handle("/", http.FileServer(http.Dir(".")))
-	http.Handle("/ws", websocket.Handler(func(c *websocket.Conn) {
+	http.Handle("/ws", websocket.Handler(func(conn *websocket.Conn) {
+		var p pos
+
 		for {
-			var m mouse
-			websocket.JSON.Receive(c, &m)
-			websocket.JSON.Send(c, m)
+			select {
+			case <-ticker.C:
+				c = c + 1
+
+				p.X = c
+				p.Y = c
+
+				bP, _ := json.Marshal(p)
+
+				conn.Write(bP)
+			}
 		}
 	}))
 
-	fmt.Println(port)
-
-	http.ListenAndServe(port, nil)
+	http.ListenAndServe(":7777", nil)
 }

@@ -1,77 +1,26 @@
 <doctype html>
 <html>
     <head>
-        <title>...</title>        
+        <title>...</title>
     </head>
 
     <body>
-        <p>
-            <span>offsetX:</span>
-            <span id="x"></span>
-        </p>
-        <p>
-            <span>offsetY:</span>
-            <span id="y"></span>
-        </p>
-        <p>
-            <span>amount:</span>
-            <span id="a"></span>
-        </p>
+      <p id="x"></p>
+      <p id="y"></p>
 
-        <p>
-            <span>hash:</span>
-            <span id="hash"></span>
-        </p>
+      <script>
+        var ws = new WebSocket('ws://localhost:7777/ws');
 
-        <script>
-            ;(function() {
-                var ws = new WebSocket("ws://localhost:1234/ws");
+        ws.onopen = function() {
+          console.log('open')
+        };
 
-                ws.onmessage = function(ev) {
-                    var _data = JSON.parse(ev.data);
+        ws.onmessage = function(info) {
+          var _info = JSON.parse(info.data);
 
-                    document.getElementById('x').innerText = _data.offsetX;                   
-                    document.getElementById('y').innerText = _data.offsetY;                  
-                    document.getElementById('a').innerText = _data.amount;                  
-                    document.getElementById('hash').innerText = Date.now();
-
-                    newNode(_data.offsetX, _data.offsetY);                  
-                };
-
-                ws.onopen = function() {
-                    var _info = {
-                        offsetX: 0,
-                        offsetY: 0,
-                        amount: 0                            
-                    };
-
-                    document.body.addEventListener('mousemove', (ev) => {
-                        _info.offSetX = ev.offsetX;
-                        _info.offSetY = ev.offsetY;
-                        _info.amount++;
-                        
-                        ws.send(JSON.stringify(_info));
-                    });
-                };
-
-                function newNode(x, y) {
-                    var el = document.createElement('span');
-                    var stl = document.createAttribute("style");
-                    var clzz = document.createAttribute("class");
-
-                    stl.value = `height: 5px; 
-                                  width: 5px; 
-                                  background-color: yellow; 
-                                  position: fixed; 
-                                  left: ${x}px;
-                                  top:${y}px;`;
-
-                    clzz.value = "new-node";
-                    el.setAttributeNode(stl);
-                    el.setAttributeNode(clzz);
-                    document.body.appendChild(el);
-                }
-            }());
-        </script>
+          document.getElementById("x").innerText = _info.x;
+          document.getElementById("y").innerText = _info.y;
+        }
+      </script>
     </body>
 </html>
