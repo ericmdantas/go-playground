@@ -2,36 +2,42 @@ package main
 
 import (
 	"fmt"
-	"sync"
+	"time"
 )
 
-func async1(wg *sync.WaitGroup) {
-	fmt.Println(1)	
-	wg.Done()
+func async1(ch chan uint32) {
+	time.Sleep(1 * time.Millisecond)
+	ch <- 1
 }
 
-func async2(wg *sync.WaitGroup) {
-	fmt.Println(2)	
-	wg.Done()
+func async2(ch chan uint32) {
+	time.Sleep(2 * time.Millisecond)
+	ch <- 2
 }
 
-func async3(wg *sync.WaitGroup) {
-	fmt.Println(3)
-	wg.Done()
+func async3(ch chan uint32) {
+	ch <- 3
 }
 
 func main() {
-	var wg sync.WaitGroup
+	ch1 := make(chan uint32)
+	ch2 := make(chan uint32)
+	ch3 := make(chan uint32)
 	
-	wg.Add(3)
-	
-	go async1(&wg)
-	go async2(&wg)
-	go async3(&wg)
+	go async1(ch1)
+	go async2(ch2)
+	go async3(ch3)
 	
 	fmt.Println("waiting")
 	
-	wg.Wait()
+	select {
+		case x := <- ch1:
+			fmt.Println(x)
+		case x := <- ch2:
+			fmt.Println(x)
+		case x := <- ch3:
+			fmt.Println(x)
+	}
 	
 	fmt.Println("done")
 }
